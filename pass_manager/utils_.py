@@ -25,7 +25,6 @@ def add_entry(web, user, pswd):
 
         else:
             data = {}
-
         data.update(new_entry)
 
         with open(DATA_FILE, "w") as file:
@@ -33,6 +32,27 @@ def add_entry(web, user, pswd):
 
     except Exception as e:
         return False, f"Error saving entry: {e}"
+
+
+def search_entry(web):
+    if not os.path.exists(DATA_FILE):
+        return False, "No data file found."
+
+    try:
+        with open(DATA_FILE, "r") as file:
+            data = json.load(file)
+
+        if web in data:
+            username = data[web]["username"]
+            password = data[web]["password"]
+            return True, (username, password)
+        elif not web:
+            return False, "Please enter website name."
+        else:
+            return False, "no entry found!"
+
+    except Exception as e:
+        return False, f"Error reading file: {e}"
 
 
 def generate_pass(length=8):

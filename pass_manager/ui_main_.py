@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QMessageBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout,
                              QFormLayout)
 from PyQt6.QtCore import Qt
-from utils_ import add_entry, generate_pass
+from utils_ import add_entry, search_entry, generate_pass
 
 
 class PasswordManagerWindow(QWidget):
@@ -39,7 +39,7 @@ class PasswordManagerWindow(QWidget):
         main_layout.addLayout(btn_layout)
 
         self.add_btn.clicked.connect(self.add_entry)
-        # self.search_btn.clicked.connect(self.search_entry)
+        self.search_btn.clicked.connect(self.search_entry)
         self.generate_btn.clicked.connect(self.gen_pass)
 
         self.setLayout(main_layout)
@@ -64,14 +64,23 @@ class PasswordManagerWindow(QWidget):
             print("📥 Loading data into table...")
             self.load_data()
         else:
-            QMessageBox.information(self, "Error", message)
+            QMessageBox.warning(self, "Error", message)
 
     def gen_pass(self):
         pswd = generate_pass()
         self.password_input.setText(pswd)
 
     def search_entry(self):
-        pass
+        web = self.website_input.text()
+        success, result = search_entry(web)
+
+        if success:
+            username, password = result
+            self.username_input.setText(username)
+            self.password_input.setText(password)
+
+        else:
+            QMessageBox.warning(self, "Not found", result)
 
     def load_data(self):
         pass
