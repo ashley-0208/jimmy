@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (QWidget, QMessageBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout,
-                             QFormLayout, QTableWidget, QTableWidgetItem)
-from PyQt6.QtCore import Qt
+                             QFormLayout, QTableWidget, QTableWidgetItem, QApplication)
+from PyQt6.QtGui import QGuiApplication
 from utils_ import add_entry, search_entry, generate_pass, load_all_data
 
 
@@ -20,16 +20,19 @@ class PasswordManagerWindow(QWidget):
         # BUTTONS
         self.generate_btn = QPushButton("Generate")
         self.add_btn = QPushButton("Add")
-        self.search_btn = QPushButton("search")
+        self.search_btn = QPushButton("Search")
+        self.copy_btn = QPushButton("Copy")
 
         btn_layout = QHBoxLayout()
         btn_layout.addWidget(self.generate_btn)
         btn_layout.addWidget(self.add_btn)
         btn_layout.addWidget(self.search_btn)
+        btn_layout.addWidget(self.copy_btn)
 
         self.add_btn.clicked.connect(self.add_entry)
         self.search_btn.clicked.connect(self.search_entry)
         self.generate_btn.clicked.connect(self.gen_pass)
+        self.copy_btn.clicked.connect(self.copy_data)
 
         # INPUT
         form_layout = QFormLayout()
@@ -101,3 +104,19 @@ class PasswordManagerWindow(QWidget):
             self.table.setItem(row, 0, QTableWidgetItem(website))
             self.table.setItem(row, 1, QTableWidgetItem(creds["username"]))
             self.table.setItem(row, 2, QTableWidgetItem(creds["password"]))
+
+    def copy_data(self):
+        selected_items = self.table.selectedItems()
+
+        if selected_items and len(selected_items) >= 3:
+            # username_item = selected_items[1]
+            # username = username_item.text()
+            password_item = selected_items[2]
+            password = password_item.text()
+
+            # QGuiApplication.clipboard().setText(username)
+            QGuiApplication.clipboard().setText(password)
+            QMessageBox.information(self, "Copied", "Password copied to clipboard.")
+
+        else:
+            QMessageBox.warning(self, "Error", "Please select a full row.")
