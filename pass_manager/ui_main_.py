@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QMessageBox, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout,
-                             QFormLayout)
+                             QFormLayout, QTableWidget, QTableWidgetItem)
 from PyQt6.QtCore import Qt
-from utils_ import add_entry, search_entry, generate_pass
+from utils_ import add_entry, search_entry, generate_pass, load_all_data
 
 
 class PasswordManagerWindow(QWidget):
@@ -27,6 +27,10 @@ class PasswordManagerWindow(QWidget):
         btn_layout.addWidget(self.add_btn)
         btn_layout.addWidget(self.search_btn)
 
+        self.add_btn.clicked.connect(self.add_entry)
+        self.search_btn.clicked.connect(self.search_entry)
+        self.generate_btn.clicked.connect(self.gen_pass)
+
         # INPUT
         form_layout = QFormLayout()
         form_layout.addRow("Website:", self.website_input)
@@ -38,11 +42,17 @@ class PasswordManagerWindow(QWidget):
         main_layout.addSpacing(10)
         main_layout.addLayout(btn_layout)
 
-        self.add_btn.clicked.connect(self.add_entry)
-        self.search_btn.clicked.connect(self.search_entry)
-        self.generate_btn.clicked.connect(self.gen_pass)
+        # PASS TABLE UI
+        self.table = QTableWidget()
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(["Website", "Username", "Password"])
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)  # disables editing sells
 
         self.setLayout(main_layout)
+        main_layout.addSpacing(15)
+        main_layout.addWidget(self.table)
+        self.load_data()
 
     def add_entry(self):
         web = self.website_input.text()
@@ -83,6 +93,11 @@ class PasswordManagerWindow(QWidget):
             QMessageBox.warning(self, "Not found", result)
 
     def load_data(self):
-        pass
+        data = load_all_data()
+        self.table.setRowCount(0)
 
-
+        for row, (website, creds) in enumerate(data.items()):
+            self.table.insertRow(row)
+            self.table.setItem(row, 0, QTableWidgetItem(website))
+            self.table.setItem(row, 1, QTableWidgetItem(creds["username"]))
+            self.table.setItem(row, 2, QTableWidgetItem(creds["password"]))

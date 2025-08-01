@@ -61,3 +61,10 @@ def generate_pass(length=8):
 
     return password
 
+
+def load_all_data():
+    if not os.path.exists("data.json"):
+        return {}
+    with open("data.json", "r") as file:
+        return json.load(file)
+
