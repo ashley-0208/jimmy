@@ -30,6 +30,8 @@ def add_entry(web, user, pswd):
         with open(DATA_FILE, "w") as file:
             json.dump(data, file, indent=4)
 
+        return True, "Entry saved successfully."
+
     except Exception as e:
         return False, f"Error saving entry: {e}"
 
@@ -68,3 +70,47 @@ def load_all_data():
     with open("data.json", "r") as file:
         return json.load(file)
 
+
+def delete_data_by_website(web):
+    if not os.path.exists("data.json"):
+        return False
+
+    try:
+        with open("data.json", "r") as file:
+            data = json.load(file)
+
+        if web in data:
+            del data[web]
+            with open("data.json", "w") as file:
+                json.dump(data, file, indent=4)
+            return True
+
+        else:
+            return False
+
+    except Exception as e:
+        return False, print(f"{e}")
+
+
+def edit_data_by_website(old_web, new_web, new_user, new_pass):
+    if not os.path.exists("data.json"):
+        return False
+
+    try:
+        with open("data.json", "r") as file:
+            data = json.load(file)
+
+        if old_web not in data:
+            return  False
+        else:
+            del data[old_web]
+            data[new_web] = {
+                "username": new_user,
+                "password": new_pass
+            }
+            with open("data.json", "w") as file:
+                json.dump(data, file, indent=4)
+            return True
+
+    except Exception as e:
+        return False, print(f"{e}")
