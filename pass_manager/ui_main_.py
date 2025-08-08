@@ -18,12 +18,18 @@ class PasswordManagerWindow(QWidget):
         self.password_input = QLineEdit()
 
         # BUTTONS
-        self.generate_btn = QPushButton("Generate")
+        self.generate_btn = QPushButton("Gen.")
         self.add_btn = QPushButton("Add")
         self.search_btn = QPushButton("Search")
         self.copy_btn = QPushButton("Copy")
         self.delete_btn = QPushButton("Delete")
         self.edit_btn = QPushButton("Edit")
+
+        # SHOW/HIDE FEATURE
+        self.toggle_btn = QPushButton("Show")
+        self.toggle_btn.setCheckable(True)
+        self.toggle_btn.setFixedWidth(60)
+        self.toggle_btn.clicked.connect(self.toggle_password)
 
         btn_layout = QHBoxLayout()
         btn_layout.addWidget(self.generate_btn)
@@ -40,16 +46,30 @@ class PasswordManagerWindow(QWidget):
         self.delete_btn.clicked.connect(self.del_data)
         self.edit_btn.clicked.connect(self.edit_data)
 
+        for btn in [self.generate_btn, self.add_btn, self.search_btn]:
+            # btn.setMinimumHeight(40)
+            # btn.setMinimumWidth(80)
+            btn.setStyleSheet("font-weight: bold")
+
         # INPUT
         form_layout = QFormLayout()
         form_layout.addRow("Website:", self.website_input)
         form_layout.addRow("username:", self.username_input)
-        form_layout.addRow("Password:", self.password_input)
+        # form_layout.addRow("Password:", self.password_input)
 
+        self.pw_layout = QHBoxLayout()
+        self.pw_layout.addWidget(self.password_input)
+        self.pw_layout.addWidget(self.toggle_btn)
+        form_layout.addRow("password: ", self.pw_layout)
+
+        # LAYOUTS
         main_layout = QVBoxLayout()
         main_layout.addLayout(form_layout)
         main_layout.addSpacing(10)
         main_layout.addLayout(btn_layout)
+        main_layout.setContentsMargins(20,20,20,20)
+        main_layout.setSpacing(15)
+        form_layout.setVerticalSpacing(10)
 
         # PASS TABLE UI
         self.table = QTableWidget()
@@ -158,6 +178,7 @@ class PasswordManagerWindow(QWidget):
             self.website_input.setText(selected_items[0].text())
             self.username_input.setText(selected_items[1].text())
             self.password_input.setText(selected_items[2].text())
+            # _.text() >> To get the text inside the cell.
 
     def edit_data(self):
         selected_items = self.table.selectedItems()
@@ -185,3 +206,13 @@ class PasswordManagerWindow(QWidget):
 
         else:
             QMessageBox.warning(self, "Error", "Please select a row.")
+
+    def toggle_password(self):
+        if self.toggle_btn.isChecked():
+            self.password_input.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.toggle_btn.setText("Hide")
+
+        else:
+            self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+            self.toggle_btn.setText("Show")
+    

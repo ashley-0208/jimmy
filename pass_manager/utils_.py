@@ -2,8 +2,24 @@ import json
 import os
 import random
 import string
+from cryptography.fernet import Fernet
+
 
 DATA_FILE = "data.json"
+
+
+def load_decrypted_data():
+    try:
+        decrypt_file(DATA_FILE)
+        with open(DATA_FILE, "r") as f:
+            data = json.load(f)
+
+        encrypt_file(DATA_FILE)
+        return data
+
+    except Exception as e:
+        print(f"Failed to load decrypted data: {e}")
+        return {}, f"{e}"
 
 
 def add_entry(web, user, pswd):
@@ -19,6 +35,7 @@ def add_entry(web, user, pswd):
     }
 
     try:
+        decrypt_file("data.json")
         if os.path.exists(DATA_FILE):
             with open(DATA_FILE, "r") as file:
                 data = json.load(file)
@@ -29,10 +46,12 @@ def add_entry(web, user, pswd):
 
         with open(DATA_FILE, "w") as file:
             json.dump(data, file, indent=4)
+        encrypt_file("data.json")
 
         return True, "Entry saved successfully."
 
     except Exception as e:
+        print(f"Error saving entry: {e}")
         return False, f"Error saving entry: {e}"
 
 
@@ -41,8 +60,7 @@ def search_entry(web):
         return False, "No data file found."
 
     try:
-        with open(DATA_FILE, "r") as file:
-            data = json.load(file)
+        data = load_decrypted_data()
 
         if web in data:
             username = data[web]["username"]
@@ -54,7 +72,8 @@ def search_entry(web):
             return False, "no entry found!"
 
     except Exception as e:
-        return False, f"Error reading file: {e}"
+        print(f"Error reading file: {e}")
+        return False, f"{e}"
 
 
 def generate_pass(length=8):
@@ -67,8 +86,12 @@ def generate_pass(length=8):
 def load_all_data():
     if not os.path.exists("data.json"):
         return {}
-    with open("data.json", "r") as file:
-        return json.load(file)
+    try:
+        data, _ = load_decrypted_data()
+        return data
+
+    except:
+        return {}
 
 
 def delete_data_by_website(web):
@@ -76,6 +99,7 @@ def delete_data_by_website(web):
         return False
 
     try:
+        decrypt_file("data.json")
         with open("data.json", "r") as file:
             data = json.load(file)
 
@@ -83,13 +107,15 @@ def delete_data_by_website(web):
             del data[web]
             with open("data.json", "w") as file:
                 json.dump(data, file, indent=4)
+            encrypt_file("data.json")
             return True
 
         else:
             return False
 
     except Exception as e:
-        return False, print(f"{e}")
+        print(f"{e}")
+        return False, f"{e}"
 
 
 def edit_data_by_website(old_web, new_web, new_user, new_pass):
@@ -97,6 +123,7 @@ def edit_data_by_website(old_web, new_web, new_user, new_pass):
         return False
 
     try:
+        decrypt_file("data.json")
         with open("data.json", "r") as file:
             data = json.load(file)
 
@@ -110,7 +137,49 @@ def edit_data_by_website(old_web, new_web, new_user, new_pass):
             }
             with open("data.json", "w") as file:
                 json.dump(data, file, indent=4)
+            encrypt_file("data.json")
             return True
 
     except Exception as e:
-        return False, print(f"{e}")
+        print(f"{e}")
+        return False, f"{e}"
+
+
+# ---- ENCRYPTION AND DECRYPTION ----
+def load_key():
+    with open("secret.key", "rb") as f:
+        return f.read()
+
+
+def encrypt_file(filename):
+    key = load_key()
+    fernet = Fernet(key)
+
+    with open(filename, "rb") as f:
+        original = f.read()
+
+    encrypted = fernet.encrypt(original)
+
+    with open(filename, "wb") as en_f:
+        en_f.write(encrypted)
+
+
+encrypt_file("data.json")
+
+
+def decrypt_file(filename):
+    key = load_key()
+    fernet = Fernet(key)
+
+    with open(filename, "rb") as en_f:
+        encrypted = en_f.read()
+
+    try:
+        decrypted = fernet.decrypt(encrypted)
+        with open(filename, "wb") as dec_f:
+            dec_f.write(decrypted)
+        return True
+
+    except Exception as e:
+        print(f"Failed to decrypt: {e}")
+        return False, f"Failed to decrypt: {e}"
